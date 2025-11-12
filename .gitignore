@@ -1,0 +1,18 @@
+# Ignorar cache e ambiente virtual
+__pycache__/
+.venv/
+env/
+venv/
+
+# Streamlit e arquivos temporários
+.streamlit/
+*.tmp
+*.log
+
+# Arquivos de dados originais (mantém só o CSV tratado)
+*.xlsx
+*.xls
+
+# Sistema
+.DS_Store
+Thumbs.db

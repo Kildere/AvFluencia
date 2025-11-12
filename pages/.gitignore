@@ -1,0 +1,18 @@
+# 🧹 Ignorar cache e ambiente virtual
+__pycache__/
+.venv/
+env/
+venv/
+
+# 🧠 Streamlit temporário
+.streamlit/
+*.tmp
+*.log
+
+# 📊 Dados originais (apenas a base tratada fica)
+*.xlsx
+*.xls
+
+# 💾 Sistema
+.DS_Store
+Thumbs.db
