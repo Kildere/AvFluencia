@@ -73,38 +73,28 @@ st.plotly_chart(fig_gre, use_container_width=True)
 st.divider()
 
 # =========================
-# 2️⃣ % COM DATA POR MUNICÍPIO (COM FILTRO + BUSCA) — VERTICAL
+# 2️⃣ % COM DATA POR MUNICÍPIO
 # =========================
 st.subheader("2️⃣ % Com Data por Município (dentro da GRE)")
 
 gre_opts = sorted(df[Columns.GRE].unique().tolist())
-sel_gre = st.selectbox("Selecione a GRE:", options=gre_opts, index=0)
+sel_gre = st.selectbox("Selecione a GRE:", options=gre_opts)
 
-# Filtra somente a GRE selecionada
-gre_block = df[df[Columns.GRE] == sel_gre]
-
-muni = summarize_by_gre_muni(gre_block).reset_index(drop=True)
+block = df[df[Columns.GRE] == sel_gre]
+muni = summarize_by_gre_muni(block).copy()
 muni["PCT_ROUND"] = muni["PCT_COM_DATA"].round(1)
 muni = muni.sort_values("PCT_ROUND", ascending=False)
 muni["COLOR"] = muni["PCT_ROUND"].apply(color_by_pct)
 
-# 🔍 Busca por município
-q = st.text_input("Pesquisar município (opcional):").strip().upper()
-if q:
-    muni = muni[muni[Columns.MUNICIPIO].str.contains(q, na=False)]
-
-# Gráfico vertical (mantendo padrão ORIGINAL)
 fig_muni = px.bar(
     muni,
     x=Columns.MUNICIPIO,
     y="PCT_ROUND",
     text="PCT_ROUND",
+    color="COLOR",
+    color_discrete_map="identity",
 )
-fig_muni.update_traces(
-    marker_color=muni["COLOR"],
-    texttemplate="%{y:.1f}%",
-    textposition="outside",
-)
+fig_muni.update_traces(texttemplate="%{y:.1f}%", textposition="outside")
 fig_muni.update_layout(
     xaxis_title="Município",
     yaxis_title="% Com Data",
@@ -115,50 +105,15 @@ fig_muni.update_layout(
     margin=dict(l=10, r=10, t=30, b=40),
     height=600,
 )
-
 st.plotly_chart(fig_muni, use_container_width=True)
 
 st.divider()
 
-
 # =========================
-# 3️⃣ TABELA DE ESCOLAS — COM FILTROS E DOWNLOAD
+# 3️⃣ TABELA DE ESCOLAS — situação (Com / Sem Data)
 # =========================
 st.subheader("3️⃣ Escolas — Situação e Dados")
 
-tb = schools_table(df)
-
-# ---- Filtro: GRE ----
-gre_sel = st.selectbox("GRE:", options=sorted(tb[Columns.GRE].unique().tolist()))
-tb = tb[tb[Columns.GRE] == gre_sel]
-
-# ---- Filtro: Município ----
-munis = sorted(tb[Columns.MUNICIPIO].unique().tolist())
-muni_sel = st.selectbox("Município:", options=["(Todos)"] + munis)
-if muni_sel != "(Todos)":
-    tb = tb[tb[Columns.MUNICIPIO] == muni_sel]
-
-# ---- Filtro: Situação ----
-situ_sel = st.radio(
-    "Situação:",
-    options=["Todos", "Com Data", "Sem Data"],
-    index=0,
-    horizontal=True,
-)
-if situ_sel == "Com Data":
-    tb = tb[tb["SITUACAO"] == "COM DATA"]
-elif situ_sel == "Sem Data":
-    tb = tb[tb["SITUACAO"] == "SEM DATA"]
-
-# Exibir tabela
-st.dataframe(tb, use_container_width=True, height=450)
-
-# ---- DOWNLOAD: Lista Sem Data ----
-faltantes = tb[tb["SITUACAO"] == "SEM DATA"]
-if not faltantes.empty:
-    st.download_button(
-        "📥 Baixar lista de escolas SEM DATA (CSV)",
-        faltantes.to_csv(index=False).encode("utf-8-sig"),
-        file_name="escolas_sem_data.csv",
-        mime="text/csv",
-    )
+tbl = schools_table(df)
+st.dataframe(tbl, use_container_width=True)
+st.caption("🟢 COM DATA | 🔴 SEM DATA — Filtre ou baixe a tabela se desejar.")
