@@ -106,19 +106,36 @@ st.caption("Base: aba **Consolidação** do arquivo Excel. Coluna D = INEP (CODI
 # =========================
 with st.sidebar:
     st.header("⚙️ Configurações")
+        # Proteção por senha
+    upload_password = st.text_input("Senha para atualizar a base", type="password")
+
+    if upload_password != st.secrets["upload_password"]:
+        st.warning("🔒 Digite a senha correta para liberar o upload.")
+        uploaded = None
+    else:
+        st.success("🔓 Acesso liberado! Você pode enviar o arquivo.")
+
     target_dir = st.text_input("Pasta de destino", value=os.getcwd())
     uploaded = st.file_uploader("Envie o arquivo Excel (.xlsx)", type=["xlsx"])
     st.divider()
     st.page_link("pages/1_Regionais_Geral.py", label="Ir para: Regionais Geral", icon="🌎")
 
-if uploaded is not None:
+# =========================
+# PROCESSAMENTO DO UPLOAD (somente se senha correta)
+# =========================
+if uploaded is not None and upload_password == st.secrets["upload_password"]:
     save_path, folder_path = save_uploaded_file_and_get_paths(uploaded, target_dir)
     df = load_consolidacao(save_path)
-    save_data(df)  # <=== salva automaticamente a nova base
+    save_data(df)
     st.success("✅ Base consolidada atualizada e salva com sucesso!")
+
+elif uploaded is not None and upload_password != st.secrets["upload_password"]:
+    st.error("❌ Senha incorreta. Upload bloqueado.")
+
 elif df is None:
     st.info("Envie o arquivo Excel para iniciar.")
     st.stop()
+
 
 
 # =========================
